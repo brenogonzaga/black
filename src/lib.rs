@@ -6,13 +6,34 @@ use std::sync::{Arc, Mutex};
 pub enum BlackBoxError {
     #[error("I/O Error: {0}")]
     Io(#[from] std::io::Error),
-
     #[error("Failed to acquire Mutex lock")]
     Lock,
 }
 
 pub struct BlackBox {
     log_file: Arc<Mutex<std::fs::File>>,
+}
+
+impl Clone for BlackBox {
+    fn clone(&self) -> Self {
+        BlackBox {
+            log_file: Arc::clone(&self.log_file),
+        }
+    }
+}
+
+impl std::fmt::Debug for BlackBox {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("BlackBox")
+            .field("log_file", &"Arc<Mutex<File>>")
+            .finish()
+    }
+}
+
+impl Default for BlackBox {
+    fn default() -> Self {
+        BlackBox::new("default.log").expect("Unable to create default logger")
+    }
 }
 
 impl BlackBox {
@@ -42,6 +63,18 @@ impl BlackBox {
         Ok(())
     }
 
+    pub fn log_debug(&self, message: &str) -> Result<()> {
+        self.log("DEBUG", message)
+    }
+
+    pub fn log_info(&self, message: &str) -> Result<()> {
+        self.log("INFO", message)
+    }
+
+    pub fn log_warn(&self, message: &str) -> Result<()> {
+        self.log("WARN", message)
+    }
+
     pub fn log_event(&self, message: &str) -> Result<()> {
         self.log("EVENT", message)
     }
@@ -50,6 +83,34 @@ impl BlackBox {
         self.log("ERROR", message)
     }
 }
+
+pub trait HasLogger {
+    fn logger(&self) -> &BlackBox;
+}
+
+pub trait Loggable: HasLogger {
+    fn log_debug(&self, message: &str) -> Result<()> {
+        self.logger().log_debug(message)
+    }
+
+    fn log_info(&self, message: &str) -> Result<()> {
+        self.logger().log_info(message)
+    }
+
+    fn log_warn(&self, message: &str) -> Result<()> {
+        self.logger().log_warn(message)
+    }
+
+    fn log_event(&self, message: &str) -> Result<()> {
+        self.logger().log_event(message)
+    }
+
+    fn log_error(&self, message: &str) -> Result<()> {
+        self.logger().log_error(message)
+    }
+}
+
+impl<T: HasLogger> Loggable for T {}
 
 pub use anyhow::{Context, Result};
 pub use chrono::Local;
