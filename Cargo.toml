@@ -2,8 +2,14 @@
 name = "black"
 version = "0.0.2"
 edition = "2024"
-description = "A simple Black implementation in Rust"
+description = "A simple Black implementation in Rust for asynchronous, thread-safe logging."
 license = "MIT"
+repository = "https://github.com/brenogonzaga/black"
+homepage = "https://github.com/brenogonzaga/black"
+documentation = "https://docs.rs/black"
+readme = "README.md"
+keywords = ["logging", "rust", "asynchronous", "thread-safe"]
+categories = ["development-tools"]
 
 [dependencies]
 anyhow = "1.0.97"
